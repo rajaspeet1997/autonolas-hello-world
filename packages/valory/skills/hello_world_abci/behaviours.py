@@ -31,6 +31,7 @@ from packages.valory.skills.hello_world_abci.models import HelloWorldParams, Sha
 from packages.valory.skills.hello_world_abci.payloads import (
     CollectRandomnessPayload,
     PrintMessagePayload,
+    PrintCountPayload,
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
@@ -38,6 +39,7 @@ from packages.valory.skills.hello_world_abci.payloads import (
 from packages.valory.skills.hello_world_abci.rounds import (
     CollectRandomnessRound,
     HelloWorldAbciApp,
+    PrintCountRound,
     PrintMessageRound,
     RegistrationRound,
     ResetAndPauseRound,
@@ -206,6 +208,37 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         self.set_done()
 
 
+class PrintCountBehaviour(HelloWorldABCIBaseBehaviour):
+    """Behaviour to read, increment, and broadcast the print count."""
+
+    matching_round = PrintCountRound
+
+    def async_act(self) -> Generator:
+        """
+        Perform the action.
+
+        Read the current print_count from the synchronized data, increment it, print the message based on the read value, then send the payload with the incremented count.
+        """
+
+        # Read the current print count from the synchronized_data, defaulting to 0 if not defined
+        current_count = self.synchronized_data.db.get("print_count", 0)
+
+        # Print the current print count to the screen
+        print(f"The message has been printed {current_count} times.")
+
+        # Increment the print_count
+        new_count = current_count + 1
+
+        # Create the PrintCountPayload with the incremented print count
+        payload = PrintCountPayload(print_count=new_count)
+
+        # Send the PrintCountPayload as a transaction
+        yield from self.send_a2a_transaction(payload)
+
+        # Optionally, after sending the payload, set the done event
+        self.set_done()
+
+
 class ResetAndPauseBehaviour(HelloWorldABCIBaseBehaviour):
     """Reset behaviour."""
 
@@ -251,5 +284,6 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
         CollectRandomnessBehaviour,  # type: ignore
         SelectKeeperBehaviour,  # type: ignore
         PrintMessageBehaviour,  # type: ignore
+        PrintCountBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }
