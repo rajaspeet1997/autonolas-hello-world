@@ -165,7 +165,6 @@ class PrintCountRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRoun
     payload_class = PrintCountPayload
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
-    none_event = Event.NONE
     collection_key = get_name(SynchronizedData.print_count_payloads)
     selection_key = get_name(SynchronizedData.print_count)
 
@@ -187,7 +186,7 @@ class PrintCountRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRoun
                 return synchronized_data, self.done_event
             else:
                 # No valid majority found, return NONE event
-                return self.synchronized_data, self.none_event
+                return None
 
         # Check if a majority is still possible
         if not self.is_majority_possible(self.collection_key, self.synchronized_data.nb_participants):
